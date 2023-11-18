@@ -50,7 +50,7 @@
       }
       map(f) {
         const items = this.items.map(f);
-        
+
         if (items.find(((o) => o === '__pegjs__stream__undefined__'))) {
             const items_filtered = items.filter(((o) => o !== '__pegjs__stream__undefined__'));
 
@@ -208,11 +208,11 @@ false
 
 array_construction
     = "[" _ "]" {return input => []}
-    / "[" array_inside:array_inside "]" {return input => unpack(array_inside(input))}
+    / "[" _ array_inside:array_inside _ "]" {return input => unpack(array_inside(input))}
 
 object_construction
     = "{" _ "}" {return input => ({})}
-    / "{" object_inside:object_inside "}" {return input => object_inside(input)}
+    / "{" _ object_inside:object_inside _ "}" {return input => object_inside(input)}
 
 array_inside
     = left:value _ "," _ right:array_inside {return input => [left(input)].concat(right(input))}
@@ -230,6 +230,7 @@ pair
     / "'" key:single_quote_string_core "'" _ ':' _ value:additive {return construct_pair(key, value)}
     / "(" _ key:value _  ")" _ ':' _ value:additive {return input => construct_pair(key(input), value)(input)}
     / key:name _ ':' _ value:additive {return construct_pair(key, value)}
+    / key:name  {return input => ({[key]: input[key]})}
 
 float_literal
     = "-" number:float_literal {return input => -number(input)}
@@ -254,11 +255,21 @@ bracket_transforms
     = "[" _ "]" {
         return function(input) {
             const handle_array = function(array) {
-                if (array.length == 0) return []
-                if (array.length == 1) return array[0]
-                return new Stream(array);
+                const newArray = [];
+                array.forEach((a) => {
+                  if (Array.isArray(a)) {
+                    return newArray.push(...a);
+                  } else {
+                    return newArray.push(a);
+                  }
+                });
+                if (newArray.length == 0) return []
+                if (newArray.length == 1) return newArray[0]
+                return new Stream(newArray);
             }
-            if (input instanceof Array) {
+            if (input instanceof Stream) {
+                return handle_array(input.items);
+            } else if (input instanceof Array) {
                 return handle_array(input);
             } else {
                 if (typeof input === 'object') return handle_array(Object.values(input))

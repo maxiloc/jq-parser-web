@@ -59,7 +59,7 @@ describe('Other tests', () => {
 
   it('handle double digits array', () => {
     const query = '.panels[12].name'
-    const input = {panels: 
+    const input = {panels:
         [
           null, null, null, null, null, null, null, null, null, null,
           {"name": "Mary", "age": 22},
@@ -99,4 +99,42 @@ describe('Error messages', () => {
   it(`Error '${e}' for '${q}'`, () => {
     expect(() => parser(q)(p)).toThrow(e);
   })
+})
+
+describe('nested structure', () => {
+  const input = {
+    "items": [
+      {
+        "nested_items": [
+          {
+            "name": "test",
+            "name2": "test"
+          }
+        ]
+      },
+      {
+        "nested_items": [
+          {
+            "name": "test2",
+            "name2": "test2"
+          },
+          {
+            "name": "test3",
+            "name2": "test3"
+          }
+        ]
+      }
+    ]
+  };
+
+  it('extract correctly', () => {
+    expect(parser('.items[].nested_items[]')(input)).toHaveLength(3);
+    expect(parser('.items[].nested_items[].name')(input)).toEqual(['test', 'test2', 'test3']);
+  });
+
+  it('extract and pipe correctly', () => {
+    expect(parser('.items[].nested_items[] | { name: .name}')(input)).toEqual([{name: 'test'}, {name: 'test2'}, {name: 'test3'}]);
+    expect(parser('.items[].nested_items[] | { name, name2 }')(input)).toEqual([{name: 'test', name2: 'test'}, {name: 'test2', name2: 'test2'}, {name: 'test3', name2: 'test3'}]);
+    expect(parser('.items[].nested_items[] | { name, test: "test" }')(input)).toEqual([{name: 'test', test: 'test'}, {name: 'test2', test: 'test'}, {name: 'test3', test: 'test'}]);
+  });
 })
