@@ -1,6 +1,6 @@
 {
   "name": "jq-parser-web",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "MIT",
   "main": "dist/jq-parser-web.cjs.js",
   "module": "dist/jq-parser-web.esm.js",
@@ -13,7 +13,7 @@
     "prepare": "yarn build",
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "test": "jest && yarn build",
+    "test": "jest",
     "lint": "eslint src/** tests/** --ext .js",
     "lint:fix": "yarn lint -- --fix"
   },

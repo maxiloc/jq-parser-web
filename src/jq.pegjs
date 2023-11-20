@@ -237,11 +237,11 @@ float_literal
     / ([0-9]*) "." ([0-9]+) {const v = (text() * 1); return input => v}
 
 integer_literal
-    = "-" number:integer_literal {return input => -number(input)}
+    = "-" _ number:integer_literal {return input => -number(input)}
     / number:([0-9]+) {return input => number.join() * 1}
 
 filter
-    = head_filter:head_filter transforms:transforms {return i => transforms(head_filter(i))}
+    = head_filter:head_filter _ transforms:transforms {return i => transforms(head_filter(i))}
     / head_filter
 
 transforms
@@ -255,20 +255,12 @@ bracket_transforms
     = "[" _ "]" {
         return function(input) {
             const handle_array = function(array) {
-                const newArray = [];
-                array.forEach((a) => {
-                  if (Array.isArray(a)) {
-                    return newArray.push(...a);
-                  } else {
-                    return newArray.push(a);
-                  }
-                });
-                if (newArray.length == 0) return []
-                if (newArray.length == 1) return newArray[0]
-                return new Stream(newArray);
+                if (array.length == 0) return []
+                if (array.length == 1) return array[0]
+                return new Stream(array);
             }
             if (input instanceof Stream) {
-                return handle_array(input.items);
+                return handle_array([].concat(...input.items));
             } else if (input instanceof Array) {
                 return handle_array(input);
             } else {
@@ -287,7 +279,7 @@ identity
     = "." {return identity}
 
 object_identifier_index
-    = "." name:name {
+    = "." _ name:name {
         return mapf(x => {
             if (Array.isArray(x)) throw new Error(`Cannot index array with string "${name}"`);
             return x[name];

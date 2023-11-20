@@ -124,12 +124,31 @@ describe('nested structure', () => {
           }
         ]
       }
+    ],
+    items2: [
+      [{
+        "nested_items": [
+          {
+            "name": "test",
+            "name2": "test"
+          }
+        ]
+      }],
+      {
+        "nested_items": [
+          {
+            "name": "test",
+            "name2": "test"
+          }
+        ]
+      },
     ]
   };
 
   it('extract correctly', () => {
     expect(parser('.items[].nested_items[]')(input)).toHaveLength(3);
     expect(parser('.items[].nested_items[].name')(input)).toEqual(['test', 'test2', 'test3']);
+    expect(() => parser('.items2[].nested_items[].name')(input)).toThrow('Cannot index array with string');
   });
 
   it('extract and pipe correctly', () => {
