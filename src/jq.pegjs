@@ -282,6 +282,7 @@ object_identifier_index
     = "." _ name:name {
         return mapf(x => {
             if (Array.isArray(x)) throw new Error(`Cannot index array with string "${name}"`);
+            if (x == null || x == undefined || !(typeof x === 'object' && x.constructor === Object)) return undefined;
             return x[name];
         })
     }

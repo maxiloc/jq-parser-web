@@ -156,4 +156,36 @@ describe('nested structure', () => {
     expect(parser('.items[].nested_items[] | { name, name2 }')(input)).toEqual([{name: 'test', name2: 'test'}, {name: 'test2', name2: 'test2'}, {name: 'test3', name2: 'test3'}]);
     expect(parser('.items[].nested_items[] | { name, test: "test" }')(input)).toEqual([{name: 'test', test: 'test'}, {name: 'test2', test: 'test'}, {name: 'test3', test: 'test'}]);
   });
+
+  const nestedInput = {
+    data: [
+      {
+        id: 1,
+        nested: null,
+      },
+      {
+        id: 2,
+        nested: {
+          subnested: "test",
+        },
+      },
+    ],
+    data2: [
+      {
+        id: 3,
+        nested: null,
+      },
+      {
+        id: 4,
+        nested: {
+          subnested: "test",
+        },
+      },
+    ],
+  }
+  it('doesnt fail on undefined nested', () => {
+    expect(parser('.data[0].nested.subnested')(nestedInput)).toBeUndefined();
+    expect(parser('.data[] | {id: .id, subnested: .nested.subnested}')(nestedInput)).toEqual([{id: 1, subnested: undefined}, {id: 2, subnested: "test"}]);
+    expect(parser('{id: .data[].id, subnested: .data2[].nested.subnested}')(nestedInput)).toEqual([{"id": 1, "subnested": undefined}, {"id": 1, "subnested": "test"}, {"id": 2, "subnested": undefined}, {"id": 2, "subnested": "test"}]);
+  });
 })
